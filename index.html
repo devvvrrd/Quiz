@@ -360,20 +360,30 @@ textarea{
   .score{font-size:52px}
 }
 
-/* Efek tekan universal */
+/* Efek interaksi universal untuk seluruh tombol, termasuk navigasi dan tombol dinamis */
 :where(button, input[type="button"], input[type="submit"], input[type="reset"], [role="button"], .btn, .back, .filebtn, .chip-btn){
   -webkit-tap-highlight-color:transparent;
   touch-action:manipulation;
-  transition:transform .16s cubic-bezier(.2,.8,.2,1),box-shadow .16s ease,filter .16s ease;
+  cursor:pointer;
+  transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s ease,filter .18s ease,background-color .18s ease;
+  transform-origin:center;
 }
-:where(button, input[type="button"], input[type="submit"], input[type="reset"], [role="button"], .btn, .back, .filebtn, .chip-btn):not([disabled]):not([aria-disabled="true"]):active{
-  transform:scale(.975);
-  box-shadow:0 0 0 2px rgba(255,255,255,.42),0 0 12px rgba(0,0,0,.14);
-  filter:brightness(1.035);
+:where(button, input[type="button"], input[type="submit"], input[type="reset"], [role="button"], .btn, .back, .filebtn, .chip-btn):not([disabled]):not([aria-disabled="true"]):hover{
+  filter:brightness(1.08);
+  box-shadow:0 0 0 1px rgba(255,255,255,.22),0 0 16px rgba(255,255,255,.16);
 }
-
+:where(button, input[type="button"], input[type="submit"], input[type="reset"], [role="button"], .btn, .back, .filebtn, .chip-btn):not([disabled]):not([aria-disabled="true"]):active,
+:where(button, input[type="button"], input[type="submit"], input[type="reset"], [role="button"], .btn, .back, .filebtn, .chip-btn).ql-pressed{
+  transform:scale(.955);
+  filter:brightness(1.16);
+  box-shadow:0 0 0 2px rgba(255,255,255,.62),0 0 10px rgba(255,255,255,.42),0 0 24px rgba(255,255,255,.24);
+}
+:where(button, input[type="button"], input[type="submit"], input[type="reset"], [role="button"], .btn, .back, .filebtn, .chip-btn):not([disabled]):not([aria-disabled="true"]):focus-visible{
+  outline:2px solid currentColor;
+  outline-offset:3px;
+}
 @media (prefers-reduced-motion:reduce){
-  *{transition:none !important;animation:none !important}
+  :where(button, input[type="button"], input[type="submit"], input[type="reset"], [role="button"], .btn, .back, .filebtn, .chip-btn){transition:none}
 }
 
 </style>
@@ -1838,6 +1848,39 @@ window.QL_DATA = {
     }
     requestAnimationFrame(frame);
   }
+
+  /* ---------- efek tekan tombol (delegasi: berlaku juga untuk tombol yang dibuat dinamis) ---------- */
+  (function () {
+    var selector = 'button:not([disabled]),input[type="button"]:not([disabled]),input[type="submit"]:not([disabled]),input[type="reset"]:not([disabled]),[role="button"]:not([aria-disabled="true"]),.btn:not([disabled]),.back:not([disabled]),.filebtn:not([disabled]),.chip-btn:not([disabled])';
+    var pressed = null, releaseTimer = null;
+    function release() {
+      if (pressed) pressed.classList.remove('ql-pressed');
+      pressed = null;
+      if (releaseTimer) { clearTimeout(releaseTimer); releaseTimer = null; }
+    }
+    document.addEventListener('pointerdown', function (e) {
+      var el = e.target && e.target.closest ? e.target.closest(selector) : null;
+      if (!el) return;
+      release();
+      pressed = el;
+      el.classList.add('ql-pressed');
+    }, true);
+    function scheduleRelease() {
+      if (releaseTimer) clearTimeout(releaseTimer);
+      releaseTimer = setTimeout(release, 170);
+    }
+    document.addEventListener('pointerup', scheduleRelease, true);
+    document.addEventListener('pointercancel', release, true);
+    window.addEventListener('blur', release);
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== ' ' && e.key !== 'Enter') return;
+      var el = document.activeElement;
+      if (el && el.matches && el.matches(selector)) { pressed = el; el.classList.add('ql-pressed'); }
+    }, true);
+    document.addEventListener('keyup', function (e) {
+      if (e.key === ' ' || e.key === 'Enter') scheduleRelease();
+    }, true);
+  })();
 
   /* ---------- mulai ---------- */
   if (aktif && aktif.endAt <= Date.now()) {
