@@ -1337,7 +1337,7 @@ window.QL_DATA = {
     }
     var id = lat.list[lat.i], q = Q[id], pilih = lat.ans[id], done = pilih !== undefined, sisa = n - c.dj;
     var h = '<div class="qhead"><span class="chip">Soal ' + (lat.i + 1) + ' dari ' + n + '</span>' +
-      '<button type="button" class="chip chip-btn" data-act="nav-buka" aria-haspopup="dialog" aria-label="Buka navigasi soal">' + ic('grid', 14) + 'Nomor</button>' +
+      '<button type="button" class="chip chip-btn" data-act="nav-buka" aria-haspopup="dialog" aria-label="Buka navigasi soal">' + ic('grid', 14) + '</button>' +
       '<button type="button" class="chip chip-btn chip-ico" data-act="calc-buka" aria-haspopup="dialog" aria-label="Buka kalkulator">' + ic('calc', 16) + '</button>' +
       '<button type="button" class="btn btn-ghost btn-sm" style="margin-left:auto" data-act="lat-keluar">Keluar</button></div>';
     h += '<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + n + '" aria-valuenow="' + c.dj + '" aria-label="Kemajuan latihan"><i style="width:' + (c.dj / n * 100) + '%"></i></div>';
@@ -1445,7 +1445,7 @@ window.QL_DATA = {
     var sisa = n - terjawab, isRagu = !!a.flags[id];
     var rem = Math.max(0, Math.ceil((a.endAt - Date.now()) / 1000));
     var h = '<div class="qhead"><span class="chip">Soal ' + (a.idx + 1) + ' dari ' + n + '</span>' +
-      '<button type="button" class="chip chip-btn" data-act="nav-buka" aria-haspopup="dialog" aria-label="Buka navigasi soal">' + ic('grid', 14) + 'Nomor</button>' +
+      '<button type="button" class="chip chip-btn" data-act="nav-buka" aria-haspopup="dialog" aria-label="Buka navigasi soal">' + ic('grid', 14) + '</button>' +
       '<button type="button" class="chip chip-btn chip-ico" data-act="calc-buka" aria-haspopup="dialog" aria-label="Buka kalkulator">' + ic('calc', 16) + '</button>' +
       '<span class="chip timer" id="timer" role="timer" aria-label="Sisa waktu" data-low="' + (rem < 60 ? 1 : 0) + '">' + fmtTime(rem) + '</span></div>';
     h += '<section class="glass card"><p class="qtext">' + esc(q.tanya) + '</p><div class="opts">';
