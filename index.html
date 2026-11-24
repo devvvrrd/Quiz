@@ -158,7 +158,7 @@ h3.h3{margin:0;font-size:15px;font-weight:700}
 @keyframes questionEnterPrev{from{opacity:0;transform:translate3d(-14px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
 #main.question-enter-next{animation:questionEnterNext .26s cubic-bezier(.22,.68,0,1) both}
 #main.question-enter-prev{animation:questionEnterPrev .26s cubic-bezier(.22,.68,0,1) both}
-@media(prefers-reduced-motion:reduce){#main.question-enter-next,#main.question-enter-prev{animation:none}}
+@media(prefers-reduced-motion:reduce){#main.question-enter-next,#main.question-enter-prev{animation:none}.ov,.ov .sheet,.ov.is-closing,.ov.is-closing .sheet{animation:none!important}}
 .chip{
   display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0 12px;border-radius:14px;
   background:var(--glass-hi);border:1px solid var(--edge);font-size:12px;font-weight:600;
@@ -216,7 +216,15 @@ h3.h3{margin:0;font-size:15px;font-weight:700}
   position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;
   padding:16px max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px));
   background:rgba(10,10,10,.38);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  animation:popupBackdropIn .2s ease-out both;
 }
+@keyframes popupBackdropIn{from{opacity:0}to{opacity:1}}
+@keyframes popupSheetIn{from{opacity:0;transform:translate3d(0,18px,0) scale(.975)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@keyframes popupSheetOut{from{opacity:1;transform:translate3d(0,0,0) scale(1)}to{opacity:0;transform:translate3d(0,10px,0) scale(.985)}}
+@keyframes popupBackdropOut{from{opacity:1}to{opacity:0}}
+.ov .sheet{animation:popupSheetIn .24s cubic-bezier(.2,.75,.25,1) both;transform-origin:center bottom}
+.ov.is-closing{pointer-events:none;animation:popupBackdropOut .17s ease-in both}
+.ov.is-closing .sheet{animation:popupSheetOut .17s ease-in both}
 .sheet{
   width:100%;max-width:440px;max-height:calc(100% - 8px);overflow:auto;border-radius:24px;padding:16px;
   display:flex;flex-direction:column;gap:12px;
@@ -1220,6 +1228,14 @@ window.QL_DATA = {
     }).join('');
   }
 
+  function dismissPopup(done) {
+    var popup = $ov.querySelector('.ov');
+    if (!popup) { done(); return; }
+    if (popup.classList.contains('is-closing')) return;
+    popup.classList.add('is-closing');
+    setTimeout(done, 175);
+  }
+
   function render(opts) {
     var html;
     if (view === 'latihan') html = vLatihan();
@@ -1718,7 +1734,7 @@ window.QL_DATA = {
     }
     if (act === 'lat-prev') { if (lat.i > 0) lat.i--; render({ top: true, questionDirection: 'prev' }); return; }
     if (act === 'lat-next') { if (lat.i < lat.list.length - 1) lat.i++; render({ top: true, questionDirection: 'next' }); return; }
-    if (act === 'lat-ke') { var latTujuan = parseInt(t.getAttribute('data-i'), 10); var latArah = latTujuan < lat.i ? 'prev' : 'next'; lat.i = latTujuan; navOpen = false; render({ top: true, questionDirection: latArah }); return; }
+    if (act === 'lat-ke') { var latTujuan = parseInt(t.getAttribute('data-i'), 10); var latArah = latTujuan < lat.i ? 'prev' : 'next'; dismissPopup(function () { lat.i = latTujuan; navOpen = false; render({ top: true, questionDirection: latArah }); }); return; }
     if (act === 'lat-akhiri') { if (latHitung().dj >= lat.list.length) { lat.fase = 'selesai'; navOpen = false; render({ top: true }); } return; }
     if (act === 'lat-ulang') { latMulai(lat.b); return; }
     if (act === 'lat-keluar') { lat = latBaru(); navOpen = false; render({ top: true }); return; }
@@ -1727,13 +1743,13 @@ window.QL_DATA = {
     if (act === 'uj-ulang') { ujHasil = null; render({ top: true }); return; }
     if (!a && act.indexOf('uj-') === 0) return;
     if (act === 'uj-jawab') { a.answers[a.ids[a.idx]] = parseInt(t.getAttribute('data-k'), 10); confirming = false; saveAktif(); render(); return; }
-    if (act === 'uj-ke') { var ujTujuan = parseInt(t.getAttribute('data-i'), 10); var ujArah = ujTujuan < a.idx ? 'prev' : 'next'; a.idx = ujTujuan; confirming = false; navOpen = false; saveAktif(); render({ top: true, questionDirection: ujArah }); return; }
+    if (act === 'uj-ke') { var ujTujuan = parseInt(t.getAttribute('data-i'), 10); var ujArah = ujTujuan < a.idx ? 'prev' : 'next'; dismissPopup(function () { a.idx = ujTujuan; confirming = false; navOpen = false; saveAktif(); render({ top: true, questionDirection: ujArah }); }); return; }
     if (act === 'uj-ragu') { var rid = a.ids[a.idx]; if (a.answers[rid] === undefined || a.answers[rid] === null) return; if (a.flags[rid]) delete a.flags[rid]; else a.flags[rid] = true; saveAktif(); render(); return; }
     if (act === 'calc-buka') { calcOpen = true; navOpen = false; render(); var kb = $ov.querySelector('.iconbtn'); if (kb) kb.focus(); return; }
-    if (act === 'calc-tutup') { calcOpen = false; render(); var kc = document.querySelector('[data-act="calc-buka"]'); if (kc) kc.focus(); return; }
+    if (act === 'calc-tutup') { dismissPopup(function () { calcOpen = false; render(); var kc = document.querySelector('[data-act="calc-buka"]'); if (kc) kc.focus(); }); return; }
     if (act === 'calc-key') { cTekan(t.getAttribute('data-k')); calcUpdate(); return; }
     if (act === 'nav-buka') { navOpen = true; calcOpen = false; render(); var cb = $ov.querySelector('.iconbtn'); if (cb) cb.focus(); return; }
-    if (act === 'nav-tutup') { navOpen = false; render(); var nb = document.querySelector('[data-act="nav-buka"]'); if (nb) nb.focus(); return; }
+    if (act === 'nav-tutup') { dismissPopup(function () { navOpen = false; render(); var nb = document.querySelector('[data-act="nav-buka"]'); if (nb) nb.focus(); }); return; }
     if (act === 'uj-prev') { if (a.idx > 0) a.idx--; confirming = false; saveAktif(); render({ top: true, questionDirection: 'prev' }); return; }
     if (act === 'uj-next') { if (a.idx < a.ids.length - 1) a.idx++; confirming = false; saveAktif(); render({ top: true, questionDirection: 'next' }); return; }
     if (act === 'uj-akhiri') { confirming = true; render(); return; }
